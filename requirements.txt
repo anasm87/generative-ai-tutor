@@ -1,0 +1,12 @@
+# The LlamaIndex pieces used by the course notebooks, plus Gradio.
+# torch and sentence-transformers are not listed: they arrive as dependencies of
+# llama-index-embeddings-huggingface. On the machine this was built on they were
+# already installed, so the venv was created with --system-site-packages to reuse
+# them; a fresh clone can create a plain venv and let pip pull them in.
+llama-index-core
+llama-index-llms-groq
+llama-index-embeddings-huggingface
+llama-index-readers-file
+pypdf
+python-dotenv
+gradio==6.3.0

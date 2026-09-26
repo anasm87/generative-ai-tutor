@@ -1,0 +1,10 @@
+.env
+storage/
+embedding_model/
+.venv/
+__pycache__/
+
+# The source documents are other people's copyrighted work - free to download
+# and read, not mine to redistribute. The repo holds the code; a download
+# script or a list of URLs belongs here instead of the PDFs themselves.
+data/
