@@ -76,12 +76,16 @@ SYSTEM_MESSAGES = [
 ]
 
 
-def get_llm():
-    """The Groq model. Note api_key, NOT token - the notebook's token= is ignored."""
+def get_llm(temperature=rag.TEMPERATURE):
+    """The Groq model. Note api_key, NOT token - the notebook's token= is ignored.
+
+    Creating one costs about a millisecond (it only holds settings and an HTTP
+    client), so the web app makes a new one per message to honour its slider.
+    """
     return Groq(
         model=rag.LLM_MODEL,
         api_key=os.environ["GROQ_API_KEY"],
-        temperature=rag.TEMPERATURE,
+        temperature=temperature,
     )
 
 

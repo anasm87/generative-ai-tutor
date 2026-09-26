@@ -80,6 +80,10 @@ Each of these was measured on this library, not guessed.
 
 ## Differences from the course notebooks
 
+- **Streaming answers** and a **citations panel** showing the real book title, author
+  and page number of every passage the answer was built from, with its match score.
+- **Live controls** for how many passages are retrieved (top-k) and for the model's
+  temperature, so the two settings that decide answer quality can be tried on the spot.
 - **Per-message chat engine.** The notebook keeps one bot with one memory, so two
   visitors to the same public link share a conversation. Here the history comes from
   the browser and a fresh engine is built per message — measured at 0.05 ms, against
