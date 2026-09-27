@@ -11,7 +11,7 @@ local version of the course notebooks 3, 4 and 5, with a few things fixed along 
 your question
      │
      ├─ rewritten into a standalone question using the conversation
-     ├─ embedded, then matched against 8,000 chunks of 13 documents
+     ├─ embedded, then matched against 8,291 chunks of 13 documents
      ▼
 [ system prompt + the 8 nearest chunks + the conversation + your question ]
      ▼
@@ -20,14 +20,36 @@ your question
 
 ## Quick start
 
+Python 3.10+, about 2 GB of disk for the dependencies (PyTorch) and 60 MB of PDFs.
+A free Groq API key: https://console.groq.com
+
+**Windows (PowerShell)**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+python download_data.py                                  # fetch the 13 documents
+Set-Content .env "GROQ_API_KEY=your_key_here" -Encoding ascii
+python rag.py --rebuild                                  # embed them once, ~8 minutes
+```
+
+**macOS / Linux**
+
 ```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt     # Linux/Mac: .venv/bin/pip
+source .venv/bin/activate
+pip install -r requirements.txt
 
-python download_data.py                            # fetch the documents (~60 MB)
-echo GROQ_API_KEY=your_key_here > .env             # free key: https://console.groq.com
-python rag.py --rebuild                            # embed them once, a few minutes
+python download_data.py
+echo "GROQ_API_KEY=your_key_here" > .env
+python rag.py --rebuild
 ```
+
+Embedding happens once; after that the database is read from `storage/` in a few seconds.
+Without activating the venv, call its interpreter directly, e.g.
+`.\.venv\Scripts\python.exe app.py`.
 
 Then pick an interface:
 
@@ -42,8 +64,15 @@ Useful flags: `--rebuild` (re-embed after changing documents or settings),
 `--plain` (turn off question rewriting, to compare), `--port 7870`, and for the web app
 `--light` / `--dark` (it follows the browser's colour scheme otherwise).
 
-The app is three columns: settings on the left, the conversation in the middle, and the
-citations for the current answer on the right.
+The app is three columns:
+
+```
+┌─────────────┬───────────────────────────┬──────────────────────┐
+│ Settings    │ Conversation              │ Sources              │
+│ top-k       │ answers stream in         │ title · author       │
+│ temperature │ example questions         │ page · match bar     │
+└─────────────┴───────────────────────────┴──────────────────────┘
+```
 
 ## The files
 
@@ -51,7 +80,7 @@ citations for the current answer on the right.
 |---|---|
 | `rag.py` | read, split, embed, store, retrieve, answer. All settings live at the top |
 | `rag_chat.py` | adds memory and question rewriting; the terminal chat |
-| `app.py` | the Gradio web app, with a top-k slider and per-message isolation |
+| `app.py` | the Gradio web app: streaming answers, a citations panel, live controls |
 | `download_data.py` | the list of source documents and how to fetch them |
 
 `rag_chat.py` and `app.py` both import `rag.py`, so `CHUNK_SIZE`, `TOP_K`, `EMBED_MODEL`
@@ -59,13 +88,14 @@ and `TEMPERATURE` are configured in one place.
 
 ## The library
 
-13 documents, about 1,950 pages.
+13 documents, 1,953 pages, 8,291 chunks.
 
 **Textbooks** — Jurafsky & Martin, *Speech and Language Processing*; Simon Prince,
 *Understanding Deep Learning*; Xiao & Zhu, *Foundations of Large Language Models*.
 
 **Papers** — ViT, CLIP, LLaVA, Flamingo, DDPM, Latent Diffusion, Whisper, wav2vec 2.0,
-and Weidinger et al. on the risks of harm from language models.
+a survey of multimodal foundation models, and Weidinger et al. on the risks of harm
+from language models.
 
 The PDFs are **not** in this repository. They are free to download and read, but they
 are not mine to republish, so `download_data.py` fetches them from the original sources.

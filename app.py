@@ -51,6 +51,7 @@ TITLES = {
     "speech_and_language_processing": ("Speech and Language Processing", "Jurafsky & Martin"),
     "understanding_deep_learning": ("Understanding Deep Learning", "Simon Prince"),
     "foundations_of_large_language_models": ("Foundations of Large Language Models", "Xiao & Zhu"),
+    "multimodal_foundation_models_survey": ("Multimodal Foundation Models (survey)", "Li et al."),
     "vision_transformer_vit": ("An Image is Worth 16x16 Words (ViT)", "Dosovitskiy et al."),
     "clip_text_image_pairs": ("Learning Transferable Visual Models (CLIP)", "Radford et al."),
     "llava_visual_instruction_tuning": ("Visual Instruction Tuning (LLaVA)", "Liu et al."),

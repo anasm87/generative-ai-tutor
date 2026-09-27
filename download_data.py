@@ -29,6 +29,8 @@ SOURCES = {
     "foundations_of_large_language_models":
         (ARXIV + "2501.09223", "Xiao & Zhu, Foundations of Large Language Models"),
 
+    "multimodal_foundation_models_survey":
+        (ARXIV + "2309.10020", "Li et al. - multimodal foundation models, a survey"),
     "vision_transformer_vit":      (ARXIV + "2010.11929", "ViT - an image is worth 16x16 words"),
     "clip_text_image_pairs":       (ARXIV + "2103.00020", "CLIP - images and text in one space"),
     "llava_visual_instruction_tuning": (ARXIV + "2304.08485", "LLaVA - chatting about an image"),
