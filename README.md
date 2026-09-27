@@ -39,7 +39,11 @@ Then pick an interface:
 | `python app.py --share` | the same, plus a temporary public link |
 
 Useful flags: `--rebuild` (re-embed after changing documents or settings),
-`--plain` (turn off question rewriting, to compare), `--port 7870`.
+`--plain` (turn off question rewriting, to compare), `--port 7870`, and for the web app
+`--light` / `--dark` (it follows the browser's colour scheme otherwise).
+
+The app is three columns: settings on the left, the conversation in the middle, and the
+citations for the current answer on the right.
 
 ## The files
 

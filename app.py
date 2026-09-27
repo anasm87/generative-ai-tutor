@@ -5,6 +5,8 @@ Gradio app - the local version of 5_gradio.ipynb, grown up a bit.
     python app.py --share    ->  also a temporary public link you can send someone
     python app.py --plain    ->  no question rewriting, the way the course notebook does it
     python app.py --port 7870 -> a specific port, if 7860 is busy
+    python app.py --light    ->  light even if the browser is set to dark
+    python app.py --dark     ->  dark even if the browser is set to light
 
 What it adds over the notebook:
 
@@ -70,6 +72,65 @@ EXAMPLES = [
     ["What was the final score of the 2022 World Cup final?", 8, 0.1],
 ]
 EXAMPLE_LABELS = ["Self-attention", "CLIP", "Diffusion", "Risks of harm", "Out of scope"]
+
+# Gradio's stock look is bright orange on white, which reads as "demo". This is
+# quieter: slate surfaces, one blue accent, small radii, Inter for text. The
+# _dark values matter because the page follows the browser's dark mode, and the
+# defaults there are muddy.
+def make_theme(light_only=False, dark_only=False):
+    """The page follows the browser's dark-mode setting by default.
+
+    Gradio picks light or dark from the browser, and a theme supplies both sets
+    of colours: body_background_fill for light, body_background_fill_dark for
+    dark.
+
+        --light   point the dark colours at the light ones  (light everywhere)
+        --dark    point the light colours at the dark ones  (dark everywhere)
+
+    Worth having, because the machine you present from may not be set the way
+    yours is.
+    """
+    light = {
+        "body_background_fill": "*neutral_50",
+        "block_background_fill": "white",
+        "input_background_fill": "white",
+    }
+    # Dark, but slate rather than pure black - closer to a code editor than to a
+    # switched-off screen.
+    dark = {
+        "body_background_fill_dark": "*neutral_900",
+        "block_background_fill_dark": "*neutral_800",
+        "input_background_fill_dark": "*neutral_800",
+    }
+    if light_only:
+        dark = {k + "_dark": v for k, v in light.items()}
+    elif dark_only:
+        light = {k.removesuffix("_dark"): v for k, v in dark.items()}
+
+    return gr.themes.Base(
+        primary_hue=gr.themes.colors.blue,
+        neutral_hue=gr.themes.colors.slate,
+        font=(gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"),
+        # A monospace font with equal-width characters, so the score bars in the
+        # sources panel line up under each other.
+        font_mono=(gr.themes.GoogleFont("JetBrains Mono"), "ui-monospace", "monospace"),
+        radius_size=gr.themes.sizes.radius_sm,
+    ).set(
+        block_border_width="1px",
+        block_shadow="none",
+        button_primary_background_fill="*primary_600",
+        button_primary_background_fill_hover="*primary_700",
+        button_primary_text_color="white",
+        **light,
+        **dark,
+    )
+
+# The citations column can get long at top-k 16, so it scrolls on its own
+# instead of stretching the page.
+CSS = """
+#sources-col { max-height: 78vh; overflow-y: auto; }
+#sources-col h3 { margin-top: 0; }
+"""
 
 
 def text_of(message):
@@ -165,6 +226,34 @@ if __name__ == "__main__":
         )
 
         with gr.Row():
+            # Settings on the left. ChatInterface normally draws its
+            # additional_inputs in an accordion above the chat, but the docs say
+            # components already rendered in the surrounding Blocks are left
+            # alone - so creating them here puts them in this column instead.
+            with gr.Column(scale=1, min_width=210):
+                # Labels and hints stay SHORT here: this column is about a fifth
+                # of the page, so a long info= string turns into a wall of text
+                # and pushes the second slider off the screen. The explanations
+                # live in the accordion below instead.
+                with gr.Group():
+                    gr.Markdown("### Settings")
+                    top_k_slider = gr.Slider(
+                        1, 16, value=rag.TOP_K, step=1, label="Passages (top-k)")
+                    temperature_slider = gr.Slider(
+                        0.0, 1.0, value=rag.TEMPERATURE, step=0.1, label="Temperature")
+
+                with gr.Accordion("What do these do?", open=False):
+                    gr.Markdown(
+                        "**Passages** – how much of the library the model may read "
+                        "for one question. Too few and it answers *I don't know*; "
+                        "too many and the useful passage drowns in noise.\n\n"
+                        "**Temperature** – how the next word is picked from the "
+                        "model's probabilities. 0 always takes the likeliest word, "
+                        "so answers repeat exactly; 1 wanders and invents more."
+                    )
+
+                gr.Markdown(f"_{n_docs} documents · answers only from retrieved passages_")
+
             with gr.Column(scale=3):
                 gr.ChatInterface(
                     fn=respond,
@@ -178,24 +267,12 @@ if __name__ == "__main__":
                                            {"left": "$", "right": "$", "display": False}]),
                     examples=EXAMPLES,
                     example_labels=EXAMPLE_LABELS,
-                    additional_inputs=[
-                        gr.Slider(1, 16, value=rag.TOP_K, step=1,
-                                  label="Passages retrieved (top-k)",
-                                  info="How much of the library the model may read for "
-                                       "one question. Too few and it answers \"I don't "
-                                       "know\"; too many and the useful passage drowns "
-                                       "in noise."),
-                        gr.Slider(0.0, 1.0, value=rag.TEMPERATURE, step=0.1,
-                                  label="Temperature",
-                                  info="How the next word is picked from the model's "
-                                       "probabilities. 0 always takes the likeliest word, "
-                                       "so answers repeat exactly; 1 wanders and invents "
-                                       "more. Keep it low for a reference tool."),
-                    ],
-                    additional_inputs_accordion=gr.Accordion("Settings", open=False),
+                    # The sliders live in the left column; passing them here only
+                    # says "send their current values to fn", in this order.
+                    additional_inputs=[top_k_slider, temperature_slider],
                     additional_outputs=[sources],
                 )
-            with gr.Column(scale=1, min_width=280):
+            with gr.Column(scale=1, min_width=280, elem_id="sources-col"):
                 sources.render()
 
     # Gradio picks 7860, or the next free port above it if that one is taken -
@@ -204,4 +281,8 @@ if __name__ == "__main__":
     if "--port" in sys.argv:
         port = int(sys.argv[sys.argv.index("--port") + 1])
 
-    demo.launch(share="--share" in sys.argv, server_port=port, theme="soft")
+    # In Gradio 6 the theme and the stylesheet are arguments to launch(),
+    # not to Blocks.
+    demo.launch(share="--share" in sys.argv, server_port=port,
+                theme=make_theme(light_only="--light" in sys.argv,
+                                 dark_only="--dark" in sys.argv), css=CSS)
