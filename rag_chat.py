@@ -24,7 +24,7 @@ It costs one extra LLM call per turn.
 
 Run it with:
     python rag_chat.py                 chat in the terminal, type "end" to stop
-    python rag_chat.py --plain         no rewriting, the way the course notebook does it
+    python rag_chat.py --plain         no rewriting: search for the words as typed
 """
 
 import os
@@ -36,7 +36,7 @@ from llama_index.core.chat_engine import ContextChatEngine, CondensePlusContextC
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.llms.groq import Groq
 
-import rag  # the config and the vector database from the previous notebook
+import rag  # the settings and the vector database
 
 # What each of those imported pieces is:
 #
@@ -58,8 +58,8 @@ import rag  # the config and the vector database from the previous notebook
 # genuinely forgets how the conversation started.
 MEMORY_TOKENS = 3000   # the library's own default, spelled out so it can be changed
 
-# The notebook's three system messages, plus the "say you don't know" line that
-# keeps the bot from answering out of its own memory of the book.
+# Three standing instructions: who the bot is, the rule that keeps it inside the
+# documents, and how to write. The "say you don't know" line is the important one.
 SYSTEM_MESSAGES = [
     ChatMessage(role=MessageRole.SYSTEM,
                 content="You are a knowledgeable, friendly assistant who explains "
@@ -77,7 +77,7 @@ SYSTEM_MESSAGES = [
 
 
 def get_llm(temperature=rag.TEMPERATURE):
-    """The Groq model. Note api_key, NOT token - the notebook's token= is ignored.
+    """The Groq model. Note api_key, NOT token - a token= argument is ignored.
 
     Creating one costs about a millisecond (it only holds settings and an HTTP
     client), so the web app makes a new one per message to honour its slider.
@@ -96,8 +96,7 @@ def build_bot(index, llm, top_k=rag.TOP_K, condense=True, history=None):
     before searching, so "What does she like to do?" is searched for as "What
     does the Queen of Hearts like to do?".
 
-    condense=False is what the course notebook does: it searches for the words
-    exactly as typed. Any question containing "she", "it" or "that one" then
+    condense=False searches for the words exactly as typed. Any question containing "she", "it" or "that one" then
     retrieves badly, because those words say nothing about the topic.
     """
     # The search half: embeds a question and returns the top_k nearest chunks.
@@ -136,7 +135,7 @@ if __name__ == "__main__":
     if not os.environ.get("GROQ_API_KEY"):
         sys.exit("no GROQ_API_KEY - put it in generative_ai/.env (free key: console.groq.com)")
 
-    # Question rewriting is on unless --plain asks for the notebook behaviour.
+    # Question rewriting is on unless --plain asks for the plain behaviour.
     condense = "--plain" not in sys.argv
     index = rag.load_or_build_index(rag.build_embeddings())
     bot = build_bot(index, get_llm(), condense=condense)
@@ -163,7 +162,7 @@ if __name__ == "__main__":
 # Notes
 # ----------------------------------------------------------------------------
 #
-# Things to try for the challenge:
+# Things worth trying:
 #   * ask a follow-up with a pronoun ("what does she do?") normally, then the
 #     same conversation with --plain, and watch the chunk scores collapse
 #   * lower MEMORY_TOKENS to about 200, chat for five turns, then ask about the

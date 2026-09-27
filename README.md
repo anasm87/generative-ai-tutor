@@ -4,8 +4,8 @@ A chatbot that answers questions about generative AI — transformers, embedding
 diffusion, vision and audio models — **using only a library of textbooks and papers**,
 and showing the source of every answer.
 
-Built for the WBS Coding School Data Science course (Generative AI week). It is the
-local version of the course notebooks 3, 4 and 5, with a few things fixed along the way.
+Three interfaces onto the same pipeline: a one-shot question in the terminal, a
+conversation with memory, and a web app.
 
 ```
 your question
@@ -106,24 +106,24 @@ Each of these was measured on this library, not guessed.
 
 | Setting | Value | Why |
 |---|---|---|
-| `CHUNK_SIZE` | 300 | at the notebook's 800, a test question retrieved four chunks that never mentioned the answer and the bot said "I don't know"; at 300 it answered. Long chunks average too many topics into one vector |
+| `CHUNK_SIZE` | 300 | at the usual default of 800, a test question retrieved four chunks that never mentioned the answer and the bot said "I don't know"; at 300 it answered. Long chunks average too many topics into one vector |
 | `TOP_K` | 8 | at 4, "How does CLIP connect images and text?" found only CLIP's results and not its method. More documents need a wider net |
 | question rewriting | on | a follow-up containing "it" retrieved chunks at 0.24 and failed; rewritten first, the same question retrieved at 0.56 and was answered |
 | `TEMPERATURE` | 0.1 | this is a reference tool, not a creative writer |
-| model | `openai/gpt-oss-120b` | the notebooks' `llama-3.3-70b-versatile` has been retired by Groq and now returns 404 |
+| model | `openai/gpt-oss-120b` | `llama-3.3-70b-versatile`, which most tutorials still name, has been retired by Groq and now returns 404 |
 
-## Differences from the course notebooks
+## Design choices
 
 - **Streaming answers** and a **citations panel** showing the real book title, author
   and page number of every passage the answer was built from, with its match score.
 - **Live controls** for how many passages are retrieved (top-k) and for the model's
   temperature, so the two settings that decide answer quality can be tried on the spot.
-- **Per-message chat engine.** The notebook keeps one bot with one memory, so two
-  visitors to the same public link share a conversation. Here the history comes from
-  the browser and a fresh engine is built per message — measured at 0.05 ms, against
-  2.5 s for the answer itself.
+- **Per-message chat engine.** One shared bot with one memory would put two visitors
+  to the same public link into the same conversation. Here the history comes from the
+  browser and a fresh engine is built per message — measured at 0.05 ms, against 2.5 s
+  for the answer itself.
 - **No private attributes.** The slider value is passed to `as_retriever()` rather than
-  written into `rag_bot._retriever._similarity_top_k`.
+  written into the retriever's internals.
 - **The prompt says what to do when the answer is missing.** Without that line the model
   quietly answers from its own memory and you cannot tell retrieval from invention.
 - **Sources under every answer**, so any claim can be checked.

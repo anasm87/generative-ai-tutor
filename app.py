@@ -1,24 +1,24 @@
 """
-Gradio app - the local version of 5_gradio.ipynb, grown up a bit.
+Gradio app - the chatbot as a web page.
 
     python app.py            ->  http://127.0.0.1:7860
     python app.py --share    ->  also a temporary public link you can send someone
-    python app.py --plain    ->  no question rewriting, the way the course notebook does it
+    python app.py --plain    ->  no question rewriting: search for the words as typed
     python app.py --port 7870 -> a specific port, if 7860 is busy
     python app.py --light    ->  light even if the browser is set to dark
     python app.py --dark     ->  dark even if the browser is set to light
 
-What it adds over the notebook:
+Four things worth knowing about it:
 
 1. The answer streams in word by word instead of appearing after a silent wait.
 2. A sources panel shows the real book titles, page numbers and match scores, so
    any claim can be checked in seconds.
 3. A fresh engine is built for every message, filled with that browser's own
-   history. The notebook keeps ONE bot with ONE memory, so two people using the
-   same link share a conversation - user A's secrets can leak to user B. Engines
-   are cheap (0.05 ms) because the index and the LLM are shared.
-4. No private attributes. The notebook poked rag_bot._retriever._similarity_top_k
-   to change top-k; here the slider value goes straight into as_retriever().
+   history. One shared bot with one memory would put two visitors to the same
+   link into the same conversation - user A's text can reach user B. Engines are
+   cheap (0.05 ms) because the index and the LLM are shared.
+4. No private attributes: the slider value goes into as_retriever(), rather than
+   being written into the retriever's internals.
 """
 
 import os

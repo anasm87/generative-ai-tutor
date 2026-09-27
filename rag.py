@@ -1,8 +1,8 @@
 """
-RAG - the local version of the course notebook (3_rag.ipynb).
+RAG - retrieval augmented generation over a folder of documents.
 
-Same six steps as the notebook, but reading from a folder on this machine and
-keeping the vector database on disk, so the documents are only embedded once.
+Six steps, reading from a folder on this machine and keeping the vector database
+on disk, so the documents are only embedded once.
 
     1. read every file in data/                     SimpleDirectoryReader
     2. split it into chunks                         SentenceSplitter
@@ -61,12 +61,12 @@ STORAGE_DIR = os.path.join(HERE, "storage")
 EMBED_CACHE = os.path.join(HERE, "embedding_model")   # the downloaded embedding model
 
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"   # 384 dimensions, runs on the CPU
-# Runs on Groq's servers. The course notebooks use "llama-3.3-70b-versatile",
-# which Groq has since retired - it now answers 404 model_not_found. To see what
-# your own key can use:
+# Runs on Groq's servers. Note that "llama-3.3-70b-versatile", which most
+# tutorials still name, has been retired and now answers 404 model_not_found.
+# To see what your own key can use:
 #     curl -H "Authorization: Bearer $env:GROQ_API_KEY" https://api.groq.com/openai/v1/models
 LLM_MODEL = "openai/gpt-oss-120b"     # 120B, 131k context. Alternatives: openai/gpt-oss-20b, qwen/qwen3.8-27b
-# The notebook uses 800/150. Measured on this book, that is too coarse: asking
+# The usual default is 800-1024 tokens. Measured on a book, that is too coarse: asking
 # "Who likes to chop off heads?" retrieved four chunks, none of which even named
 # the Queen, and the bot correctly answered "I don't know". At 300 the same
 # question is answered. Long chunks average too many topics into one vector, so
@@ -75,7 +75,8 @@ LLM_MODEL = "openai/gpt-oss-120b"     # 120B, 131k context. Alternatives: openai
 #     300 -> 200 chunks, 1/4 named the Queen, answer: "The Queen"
 #     150 -> 479 chunks, 2/4 named the Queen, answer: "The Queen"
 CHUNK_SIZE, CHUNK_OVERLAP = 300, 60
-# The notebook uses 2. With 12 documents and ~8000 chunks that is far too few:
+# A small top-k, 2 to 4, is the common default. With 13 documents and ~8,000
+# chunks that is far too few:
 # "How does CLIP connect images and text?" retrieved only chunks about CLIP's
 # results at top_k=4 and the bot correctly refused; at top_k=8 it also pulled in
 # the method section and answered properly. More documents need a wider net.
@@ -84,9 +85,8 @@ TEMPERATURE = 0.1                      # low, because we want facts and not crea
 
 DEFAULT_QUESTION = "What is self-attention and what problem does it solve?"
 
-# The notebook's prompt, plus the line it was missing. Without that line the
-# model happily answers from its own memory, and then there is no way to tell
-# real retrieval from invention.
+# Note the last line. Without it the model happily answers from its own memory,
+# and then there is no way to tell real retrieval from invention.
 #
 # {context_str} and {query_str} are not free choices - LlamaIndex looks for
 # exactly these two names and fills them in with the retrieved chunks and the
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 # chunks, the model never had a chance. Raising TOP_K helps more than changing
 # the prompt.
 #
-# What's worth experimenting with for the challenge:
+# Worth experimenting with:
 #   CHUNK_SIZE      300 vs 800 vs 1500 - small chunks retrieve precisely but lose
 #                   the surrounding context, large ones are the other way round
 #   TOP_K           2 vs 4 vs 8 - more chunks, more tokens, better recall
